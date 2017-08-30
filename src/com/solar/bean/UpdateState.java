@@ -7,8 +7,9 @@ public class UpdateState {
 	private String new_version;
 	private String update_state;
 	private String description;
+	
 	public String getHost() {
-		return host;
+		return host;  
 	}
 	public void setHost(String host) {
 		this.host = host;
