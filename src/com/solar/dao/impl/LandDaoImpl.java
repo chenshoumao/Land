@@ -116,43 +116,54 @@ public class LandDaoImpl implements LandDao {
 					// 获取在船端的最新版本
 					String upToDateVersion = getVersionFromPath(resource.getString(key)).get(0).toString();
 
-					logger.debug("	" + upToDateVersion);
-					logger.debug("	版本的分析 看看存不存在依赖");
-					// 版本的分析 看看存不存在依赖
-					resultMap = versionFilter(key, keyList, map, moduleVersionOfShip, upToDateVersion);
-					logger.debug("	分析结束");
-
-					if (!(boolean) resultMap.get("result")) {
+					logger.debug("  查看在岸端有没有船端的版本信息");
+					String path = (new ResourceBundleUtil()).getInfo("config/land", key);
+					File keyFile = new File(path + "/" + moduleVersionOfShip);
+					if (!keyFile.exists()) {
 						analyResult = false;
-						String info = (String) resultMap.get("info");
-						resultMap.clear();
+						Map<String, Object> mapInfo = new HashMap<String, Object>();
+						mapInfo.put(keyName, "当前版本不存在！");
+						list.add(mapInfo);
+					} else if (keyFile.exists()) {
 
-						// 插入信息到数据库
-						String sql = "insert into update_logs(ip,update_type,original_version,update_time,update_state,description) values(?,?,?,to_date(?,'yyyy-mm-dd hh24:mi:ss'),?,?)";
-						try {
-							PreparedStatement ps = (PreparedStatement) conn.prepareStatement(sql);
-							ps.setString(1, host);
-							// 设置参与过分析的组件名
-							ps.setString(2, keyName);
-							ps.setString(3, moduleVersionOfShip);
-							SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-							date = new Date();
-							ps.setString(4, simpleFormat.format(date).toString());
-							ps.setInt(5, 0);
-							ps.setString(6, info);
-							ps.execute();
-							ps.close();
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						logger.debug("	" + upToDateVersion);
+						logger.debug("	版本的分析 看看存不存在依赖");
+						// 版本的分析 看看存不存在依赖
+						resultMap = versionFilter(key, keyList, map, moduleVersionOfShip, upToDateVersion);
+						logger.debug("	分析结束");
+
+						if (!(boolean) resultMap.get("result")) {
+							analyResult = false;
+							String info = (String) resultMap.get("info");
+							resultMap.clear();
+
+							// 插入信息到数据库
+							String sql = "insert into update_logs(ip,update_type,original_version,update_time,update_state,description) values(?,?,?,to_date(?,'yyyy-mm-dd hh24:mi:ss'),?,?)";
+							try {
+								PreparedStatement ps = (PreparedStatement) conn.prepareStatement(sql);
+								ps.setString(1, host);
+								// 设置参与过分析的组件名
+								ps.setString(2, keyName);
+								ps.setString(3, moduleVersionOfShip);
+								SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+								date = new Date();
+								ps.setString(4, simpleFormat.format(date).toString());
+								ps.setInt(5, 0);
+								ps.setString(6, info);
+								ps.execute();
+								ps.close();
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							if (key != "db") {
+								Map<String, Object> mapInfo = new HashMap<String, Object>();
+								mapInfo.put(keyName, info);
+								list.add(mapInfo);
+							}
+						} else {
+							needDb = needDb == false ? (boolean) resultMap.get("needDb") : true;
 						}
-						if (key != "db") {
-							Map<String, Object> mapInfo = new HashMap<String, Object>();
-							mapInfo.put(keyName, info);
-							list.add(mapInfo);
-						}
-					} else {
-						needDb = needDb == false ? (boolean) resultMap.get("needDb") : true;
 					}
 
 				} else {
@@ -563,21 +574,15 @@ public class LandDaoImpl implements LandDao {
 
 		String sourcePath = bundleUtil.getInfo("config/land", "tempPath") + File.separator
 				+ fileName.substring(0, fileName.indexOf(".zip"));
- 
-		 String outPutZipPath = ResourceBundleUtil.getInfo("config/land", "zipPath");
-		 logger.debug("\t源文件路径：" + sourcePath);
-		 logger.debug("\t增量包路径： " + outPutZipPath);
-		 zip.zip(host, fileName, sourcePath, outPutZipPath);
+
+		String outPutZipPath = ResourceBundleUtil.getInfo("config/land", "zipPath");
+		logger.debug("\t源文件路径：" + sourcePath);
+		logger.debug("\t增量包路径： " + outPutZipPath);
+		zip.zip(host, fileName, sourcePath, outPutZipPath);
 		logger.debug("	向管道的数据库输入数据");
 		logger.debug("  压缩包名是 ： " + fileName);
- 
+
 	}
-
-	 
-
-	 
-
-	 
 
 	/*
 	 * public static boolean zipFile(long size) { boolean stateResult = false;
@@ -842,6 +847,28 @@ public class LandDaoImpl implements LandDao {
 		UnzipUtil unzipUtil = new UnzipUtil();
 		try {
 			unzipUtil.unzip(path, destpath);
+			map.put("state", true);
+		} catch (Exception e) {
+			// TODO: handle exception
+			logger.debug("  解压发生错误");
+			map.put("state", false);
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> unzip(String key, String filePath, String fileName) {
+		ResourceBundleUtil bundleUtil = new ResourceBundleUtil();
+		Map<String, Object> map = new HashMap<String, Object>();
+		// 解压路径
+		logger.debug("  解压的路径是 ");
+		String destpath = bundleUtil.getInfo("config/land", key) + "/" + fileName;
+		logger.debug("  将" + filePath + "解压到 " + destpath);
+
+		UnzipUtil unzipUtil = new UnzipUtil();
+		try {
+			unzipUtil.unzip(filePath, destpath);
 			map.put("state", true);
 		} catch (Exception e) {
 			// TODO: handle exception

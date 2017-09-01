@@ -96,7 +96,7 @@ public class UnzipUtil {
 				System.out.println(checkIn.getChecksum().getValue());
 				checkIn.close();
 
-				Thread.sleep(4000);
+				//Thread.sleep(4000);
 				File file = new File(sourcePath); 
 			}
 

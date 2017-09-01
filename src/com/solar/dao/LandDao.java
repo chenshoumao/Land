@@ -17,4 +17,7 @@ public interface LandDao {
 	
 	//声明解压包的接口
 	public Map<String, Object> unzip(String key,String path);
+	
+	//声明解压包的接口
+	public Map<String, Object> unzip(String key,String filePath,String fileName);
 }
