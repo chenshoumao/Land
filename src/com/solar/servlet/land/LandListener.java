@@ -34,7 +34,7 @@ public class LandListener extends HttpServlet {
 	
 	private LandDaoImpl dao = new LandDaoImpl();
       
-	private static Logger logger = Logger.getLogger(LandDaoImpl.class);
+	private static Logger logger = Logger.getLogger(LandListener.class);
     /**
      * @see HttpServlet#HttpServlet()
      */

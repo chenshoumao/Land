@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solar.dao.impl.LandDaoImpl;
 import com.solar.utils.OracleUtil;
 import com.solar.utils.ResourceBundleUtil;
+import com.solar.utils.WriteFileUtil;
 
 /**
  * Servlet implementation class Test
@@ -177,7 +178,10 @@ public class UploadVersionServlet extends HttpServlet {
 			        if(!file.exists())
 			        	file.mkdir();
 			        Map<String, Object> map = dao.unzip(key, savePath + name + extName,new_repository_name);
-			        
+			        if((boolean) map.get("state")){ 
+			        	WriteFileUtil fileUtil = new WriteFileUtil();
+			        	fileUtil.writeInfoToFile(new_repository_name, path + "/" + new_repository_name + "/version.txt", false);
+			        }
 			        ObjectMapper mapper = new ObjectMapper();
 			        String json = mapper.writeValueAsString(map);
 			        response.setCharacterEncoding("utf-8");

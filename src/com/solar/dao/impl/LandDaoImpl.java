@@ -268,7 +268,7 @@ public class LandDaoImpl implements LandDao {
 			} else {
 				// 走到这一步 就是打包都完成了，都没问题，然后就通知通道准备传输压缩文件
 				conn.commit();
-				insertInfoToChannel(host, fileName);
+				insertInfoToChannel(host, "zipfile" + "/" + fileName);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -322,7 +322,7 @@ public class LandDaoImpl implements LandDao {
 		PreparedStatement oraPs = null;
 		ResultSet oraRs = null;
 		try {
-			oraPs = (PreparedStatement) oraConn.prepareStatement(sql);
+			oraPs = oraConn.prepareStatement(sql);
 			oraPs.setString(1, fileName);
 			if (oraPs.execute())
 				logger.debug("  插入CHANNEL_SEND_PLAN 成功");
@@ -336,10 +336,21 @@ public class LandDaoImpl implements LandDao {
 				plandId = oraRs.getString(1);
 				logger.debug("	在 CHANNEL_SEND_PLAN " + fileName + " 中 的ID 是： " + plandId);
 			}
-			String sql2 = "insert into CHANNEL_SEND_DETAIL(plan_id,client_host,status) values(?,?,?)";
-			oraPs = (PreparedStatement) oraConn.prepareStatement(sql2);
+			
+			
+			
+			String queryShipId = "select ship_id from CHANNEL_CONFIG where client_port = '" + host + "'";
+			oraPs = oraConn.prepareStatement(queryShipId);
+			String ship_id = "";
+			if (oraRs.next()) {
+				ship_id = oraRs.getString(1);
+				logger.debug("	在 CHANNEL_CONFIG " + host + " 中 的船ID 是： " + ship_id);
+			}
+			
+			String sql2 = "insert into CHANNEL_SEND_DETAIL(plan_id,ship_id,status) values(?,?,?)";
+			oraPs = oraConn.prepareStatement(sql2);
 			oraPs.setString(1, plandId);
-			oraPs.setString(2, host);
+			oraPs.setString(2, ship_id);
 			oraPs.setString(3, "0");
 			if (oraPs.execute())
 				logger.debug("  插入CHANNEL_SEND_DETAIL 成功");

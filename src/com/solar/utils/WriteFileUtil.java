@@ -6,7 +6,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import org.apache.commons.io.FileUtils;
 
 public class WriteFileUtil {
 
@@ -31,20 +34,31 @@ public class WriteFileUtil {
 	}
 
 	public static void main(String[] args) throws IOException {
-		ResourceBundle resource = ResourceBundle.getBundle("config/ship");
-		String informUnzipFilePath = resource.getString("informUnzipFilePath");
-		informUnzipFilePath = new String(informUnzipFilePath.getBytes("ISO-8859-1"), "utf-8");
+		
 
-		String str = "i love china!";
-		File txt = new File(informUnzipFilePath);
+		String str = "hostip = 192 ";
+		File txt = new File("D:\\text.properties");
 		if (!txt.exists()) {
 			txt.createNewFile();
 		}
 		byte bytes[] = new byte[512];
-		bytes = str.getBytes(); // 新加的
-		int b = str.length(); // 改
+		
+		 
+		List<String> contentList = FileUtils.readLines(txt);
 		FileOutputStream fos = new FileOutputStream(txt);
+		for(int i = 0;i < contentList.size() -1 ;i++){
+			String content = contentList.get(i);
+			bytes = content.getBytes(); // 新加的
+			int b = content.length(); // 改 
+			fos.write(bytes, 0, b);
+			fos.write("\r\n".getBytes());  
+		} 
+		 
+		bytes = str.getBytes(); // 新加的
+		int b = str.length(); // 改 
 		fos.write(bytes, 0, b);
+		fos.write("\r\n".getBytes());  
+		
 		fos.close();
 
 	}
